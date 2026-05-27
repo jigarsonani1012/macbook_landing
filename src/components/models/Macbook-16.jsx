@@ -9,10 +9,30 @@ Title: macbook pro M3 16 inch 2024
 */
 
 import { useGLTF, useTexture } from '@react-three/drei'
+import useMacbookStore from '../../store';
+import {  SRGBColorSpace } from 'three';
+import { useEffect } from 'react';
+import { noChangeParts } from '../../constants';
 
 export default function MacbookModel16(props) {
-  const { nodes, materials } = useGLTF('/models/macbook-16-transformed.glb')
+  const { color } = useMacbookStore();
+  const { nodes, materials, scene } = useGLTF('/models/macbook-16-transformed.glb');
+
+
   const texture = useTexture('/screen.png');
+  texture.colorSpace = SRGBColorSpace;
+  texture.needsUpdate = true;
+  useEffect(() => {
+    scene.traverse((child) => {
+      if (child.isMesh) {
+        if (!noChangeParts.includes(child.name)) {
+          if (child.material.color) {
+            child.material.color.set(color);
+          }
+        }
+      }
+    })
+  }, [color, scene])
   return (
     <group {...props} dispose={null}>
       <mesh geometry={nodes.Object_10.geometry} material={materials.PaletteMaterial001} rotation={[Math.PI / 2, 0, 0]} />
